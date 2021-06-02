@@ -146,7 +146,7 @@ for d in blockstakedelegators[poolId]:
         activestake = blockstake[d]
         if exclude_addresses is not None and exclude_addresses.__contains__(d):
             excluded_stake += activestake
-        elif activestake > 0 and activestake > min_ada:
+        elif activestake > min_ada:
             total_stake += activestake
             active_addresses += 1
             delegators[d] = activestake
