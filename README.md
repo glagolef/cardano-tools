@@ -31,23 +31,22 @@ If working directory has a ledger.json file already, only --pool-id argument is 
 ```bash
 python3 randomdelegatorpicker.py --help
 python3 randomdelegatorpicker.py -h
-usage: randomdelegatorpicker.py [-h] -p ID [-l LEDGER] [-e EXCLUDE_ADDRESSES] [-w NUMBER_WINNERS] [-m MIN_ADA] [-u]
+usage: randomdelegatorpicker.py [-h] --pool-id ID [--ledger LEDGER] [--exclude EXCLUDE_ADDRESSES] [--winners NUMBER_WINNERS] [--min-ada MIN_ADA] [--unique]
 
-Get random winner(s) for a raffle/giveaway. Example usage: python3 random.py -l ledger.json -p b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf -e
-1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4 -w 3 -m 1 -u
+Get random winner(s) for a raffle/giveaway. Example usage: python3 random.py --ledger ledger.json--pool-id b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf --exclude
+1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4 --winners 3 --min-ada 1 --unique
 
 optional arguments:
   -h, --help            show this help message and exit
-  -p ID, --pool-id ID   the pool ID
-  -l LEDGER, --ledger LEDGER
+  --pool-id ID, -p ID   the pool ID
+  --ledger LEDGER, -l LEDGER
                         the path to a current ledger-state JSON file
-  -e EXCLUDE_ADDRESSES, --exclude EXCLUDE_ADDRESSES
+  --exclude EXCLUDE_ADDRESSES, -e EXCLUDE_ADDRESSES
                         if specified will exclude provided address(es) from the raffle. E.g. --exclude
-                        "002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff"
-  -w NUMBER_WINNERS, --winners NUMBER_WINNERS
+                        "1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4,002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff"
+  --winners NUMBER_WINNERS, -w NUMBER_WINNERS
                         if specified will generate specified number of winners
-  -m MIN_ADA, --min-ada MIN_ADA
+  --min-ada MIN_ADA, -m MIN_ADA
                         if specified will ignore addresses containing balances below the provided threshold
-  -u, --unique          if specified, the winners will be unique (max 1 prize per address)
-
+  --unique, -u          if used, the winners will be unique (max 1 prize per address). Only makes sense to use if --winners is specified.
 ```

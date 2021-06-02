@@ -7,35 +7,37 @@ from os import path
 parser = argparse.ArgumentParser(
     description="Get random winner(s) for a raffle/giveaway. Example usage: python3 random.py --ledger ledger.json"
                 + "--pool-id b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf "
-                  "--exclude 1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4 --winners 3 --min-ada 1 --unique"
+                + "--exclude 1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4 --winners 3 --min-ada 1 --unique"
 )
-parser.add_argument('-p', "--pool-id", dest="id", help="the pool ID", required=True)
+parser.add_argument("--pool-id", '-p', dest="id", help="the pool ID", required=True)
 parser.add_argument(
-    '-l', "--ledger",
+    "--ledger", '-l',
     dest="ledger",
     default="ledger.json",
     help="the path to a current ledger-state JSON file",
 )
 parser.add_argument(
-    '-e', "--exclude",
+    "--exclude", '-e',
     dest="exclude_addresses",
     help="if specified will exclude provided address(es) from the raffle.\nE.g. --exclude "
-         "\"1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4,002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff\"",
+        + "\"1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4,"
+          "002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff\""
 )
 parser.add_argument(
-    '-w', "--winners",
+    "--winners", '-w',
     dest="number_winners",
-    help="if specified will generate specified number of winners",
+    help="if specified will generate specified number of winners"
 )
 parser.add_argument(
-    '-m', "--min-ada",
+    "--min-ada", '-m',
     dest="min_ada",
-    help="if specified will ignore addresses containing balances below the provided threshold",
+    help="if specified will ignore addresses containing balances below the provided threshold"
 )
 parser.add_argument(
-    '-u', "--unique",
+    "--unique", '-u',
     action="store_true",
-    help="if specified, the winners will be unique (max 1 prize per address)",
+    help="if used, the winners will be unique (max 1 prize per address). "
+         + "Only makes sense to use if --winners is specified."
 )
 # Args
 args = parser.parse_args()
@@ -149,14 +151,14 @@ for d in blockstakedelegators[poolId]:
             active_addresses += 1
             delegators[d] = activestake
 
-print("Number of eligible addresses: " + str(active_addresses))
 print("Total pool stake: " + str((total_stake + excluded_stake) / million) + "\n")
-print("Total eligible stake: " + str(total_stake / million) + "\n")
+print("Total eligible stake: " + str(total_stake / million))
+print("Number of eligible addresses: " + str(active_addresses))
 
 if number_winners is not None:
     number_winners = abs(int(number_winners))
     if unique and active_addresses < number_winners:
-        exit("Too few delegators to pick from. Try a lower number of winners or omit --unique")
+        exit("Too few delegators to pick from. Try a lower number of winners or omit --unique flag")
     for i in range(number_winners):
         winning_num = random.randint(1, total_stake)
         total_stake = get_winner(unique, winning_num, i+1, delegators, total_stake)
