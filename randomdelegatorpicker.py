@@ -76,23 +76,22 @@ if not path.exists(ledger):
 with open(ledger) as f:
     ledger = json.load(f)
 
-stakequery = "_pstakeSet"
+stakequery = "pstakeSet"
 stakeinfo = "active"
 
 blockstakedelegators = {}
 blockstake = {}
 bs = {}
 
-if "nesEs" in ledger:
-    ledger_set = ledger["nesEs"]["esSnapshots"][stakequery]
-else:
-    ledger_set = ledger["esSnapshots"][stakequery]
-
+epoch=ledger['lastEpoch']
+print("Current Epoch: " + str(epoch))
+totalRecordedActiveStake=int(ledger['stakeDistrib'][poolId]['individualPoolStake']['numerator'])/million
+stateBefore = ledger["stateBefore"]
 # Exclude pool owners and reward accounts
-pool_owners = ledger['nesEs']['esLState']['_delegationState']['_pstate']['_pParams'][poolId]['owners']
-pool_rewards = \
-    ledger['nesEs']['esLState']['_delegationState']['_pstate']['_pParams'][poolId]['rewardAccount']['credential'][
-        'key hash']
+poolData = stateBefore['esLState']['delegationState']['pstate']['pParams pState'][poolId]
+pool_owners = poolData['owners']
+pool_rewards = poolData['rewardAccount']['credential']['key hash']
+ledger_set = stateBefore["esSnapshots"][stakequery]
 
 if exclude_addresses is None:
     exclude_addresses = ""
@@ -103,7 +102,7 @@ if not exclude_addresses.__contains__(pool_rewards):
 print("Excluding the following staking addresses: " + str(exclude_addresses))
 
 # Retrieve list of delegators
-for item2 in ledger_set["_delegations"]:
+for item2 in ledger_set["delegations"]:
     keyhashobj = []
     for itemsmall in item2:
         if "key hash" in itemsmall:
@@ -117,7 +116,7 @@ for item2 in ledger_set["_delegations"]:
                 blockstakedelegators[poolid] + keyhashobj
         )
 
-for item2 in ledger_set["_stake"]:
+for item2 in ledger_set["stake"]:
     delegatorid = None
     for itemsmall in item2:
         if isinstance(itemsmall, int):
@@ -150,8 +149,8 @@ for d in blockstakedelegators[poolId]:
             total_stake += activestake
             active_addresses += 1
             delegators[d] = activestake
-
-print("Total pool stake: " + str((total_stake + excluded_stake) / million) + "\n")
+print("Total pool stake on record: " + str(totalRecordedActiveStake))
+print("Total calculated pool stake: " + str((total_stake + excluded_stake) / million) + "\n")
 print("Total eligible stake: " + str(total_stake / million))
 print("Number of eligible addresses: " + str(active_addresses))
 
@@ -165,5 +164,5 @@ if number_winners is not None:
 else:
     winning_num = random.randint(1, total_stake)
     total_stake = get_winner(unique, winning_num, 1, delegators, total_stake)
-
+# print("Full list of eligible delegators:\n" + str(delegators))
 print("Done!")
