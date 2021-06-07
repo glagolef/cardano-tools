@@ -164,5 +164,5 @@ if number_winners is not None:
 else:
     winning_num = random.randint(1, total_stake)
     total_stake = get_winner(unique, winning_num, 1, delegators, total_stake)
-
+# print("Full list of eligible delegators:\n" + str(delegators))
 print("Done!")
