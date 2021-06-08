@@ -96,7 +96,7 @@ ledger_set = stateBefore["esSnapshots"][stakequery]
 if exclude_addresses is None:
     exclude_addresses = ""
 for po in pool_owners:
-    exclude_addresses += str(po) + ","
+    exclude_addresses += "," + str(po)
 if not exclude_addresses.__contains__(pool_rewards):
     exclude_addresses += str(pool_rewards)
 print("Excluding the following staking addresses: " + str(exclude_addresses))
