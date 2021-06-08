@@ -149,6 +149,8 @@ for d in blockstakedelegators[poolId]:
             total_stake += activestake
             active_addresses += 1
             delegators[d] = activestake
+        else:
+            excluded_stake += activestake
 print("Total pool stake on record: " + str(totalRecordedActiveStake))
 print("Total calculated pool stake: " + str((total_stake + excluded_stake) / million) + "\n")
 print("Total eligible stake: " + str(total_stake / million))
