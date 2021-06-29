@@ -33,12 +33,17 @@ python3 randomdelegatorpicker.py --help
 python3 randomdelegatorpicker.py -h
 usage: randomdelegatorpicker.py [-h] --pool-id ID [--ledger LEDGER] [--exclude EXCLUDE_ADDRESSES] [--winners NUMBER_WINNERS] [--min-ada MIN_ADA] [--unique]
 
-Get random winner(s) for a raffle/giveaway. Example usage: python3 random.py --ledger ledger.json--pool-id b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf --exclude
-1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4 --winners 3 --min-ada 1 --unique
+Get random winner(s) for a raffle/giveaway. Example usage 1: python3 random.py --ledger ledger.json
+--pool-id b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf --exclude
+002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff --winners 3 --min-tokens 1 --unique
+Example usage 2: python3 random.py --ledger ledger.json --policy-id
+0e14267a8020229adc0184dd25fa3174c3f7d6caadcb4425c70e7c04 --winners 3 --min-tokens 3 --unique
+
 
 optional arguments:
-  -h, --help            show this help message and exit
-  --pool-id ID, -p ID   the pool ID
+  --help, -h            show this help message and exit
+  --pool-id ID, -i ID   the pool ID
+  --policy-id ID, -p POLICY_ID   the token Policy Id
   --ledger LEDGER, -l LEDGER
                         the path to a current ledger-state JSON file
   --exclude EXCLUDE_ADDRESSES, -e EXCLUDE_ADDRESSES
@@ -46,7 +51,7 @@ optional arguments:
                         "1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4,002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff"
   --winners NUMBER_WINNERS, -w NUMBER_WINNERS
                         if specified will generate specified number of winners
-  --min-ada MIN_ADA, -m MIN_ADA
+  --min-tokens MIN_TOKENS, -m MIN_TOKENS
                         if specified will ignore addresses containing balances below the provided threshold
   --unique, -u          if used, the winners will be unique (max 1 prize per address). Only makes sense to use if --winners is specified.
 ```
