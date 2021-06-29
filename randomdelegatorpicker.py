@@ -7,7 +7,6 @@ import subprocess
 
 from os import path
 
-
 def parse_all_args():
     parser = argparse.ArgumentParser(
         description="Get random winner(s) for a raffle/giveaway.\nExample usage 1: python3 random.py --ledger ledger.json"
@@ -57,7 +56,9 @@ def maybe_run_bech32(addr, try_bech32):
         try_bech32 = False
     elif try_bech32:
         try:
-            return subprocess.run([common.bech32, "addr <<< " + addr])
+            p1 = subprocess.p1 = subprocess.Popen(["./runbech32.sh", addr], stdout=subprocess.PIPE)
+            decoded_address = p1.stdout.readline().decode("utf-8").rstrip()
+            return decoded_address
         except:
             print("invalid path for bech32:" + common.bech32
                   + "\nYou'll need to use bech32 to convert winning addresses to 'addr...' format.\n")
