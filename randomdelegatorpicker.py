@@ -271,9 +271,6 @@ if number_winners_arg is not None:
         exit("Too few delegators to pick from. Try a lower number of winners or omit --unique flag")
     for i in range(number_winners):
         try:
-            print("max:" + str(tickets_total))
-            tickets = ""
-            tt = 0
             winning_num = random.randint(1, tickets_total)
             tickets_total = process_winner(winning_num, i + 1, tickets_total)
         except:
