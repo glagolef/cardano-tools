@@ -7,14 +7,23 @@ import subprocess
 
 from os import path
 
+# Global var
+try_bech32 = True
+
+
 def parse_all_args():
+    python_cmd = "python3 randomdelegatorpicker.py "
+    ledger_eg = "--ledger ledger.json "
+    poolid_eg = "--pool-id b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf "
+    policyid_eg = "--policy-id 0e14267a8020229adc0184dd25fa3174c3f7d6caadcb4425c70e7c0 "
+    exclude_eg = "--exclude 002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff "
+    winners_eg = "--winners 3 "
+    min_tokens_eg = "--min-tokens 1 "
+    unique_eg = "--unique "
     parser = argparse.ArgumentParser(
         description="Get random winner(s) for a raffle/giveaway.\nExample usage 1: "
-                    + "python3 randomdelegatorpicker.py --ledger ledger.json"
-                    + "--pool-id b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf "
-                    + "--exclude 002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff --winners 3 --min-tokens 1 --unique" + "\n\n"
-                    + "Example usage 2: python3 randomdelegatorpicker.py --ledger ledger.json "
-                    + "--policy-id 0e14267a8020229adc0184dd25fa3174c3f7d6caadcb4425c70e7c0--winners 3 --min-tokens 3 --unique"
+                    + python_cmd + poolid_eg + exclude_eg + winners_eg + min_tokens_eg + unique_eg + "\n\n"
+                    + "Example usage 2: \n" + python_cmd + ledger_eg + policyid_eg + winners_eg + min_tokens_eg + unique_eg
     )
     parser.add_argument("--pool-id", '-i', dest="id", help="the pool ID")
     parser.add_argument("--policy-id", '-p', dest="policyId", help="the token policy ID")
@@ -49,59 +58,63 @@ def parse_all_args():
     return parser.parse_args()
 
 
-def maybe_run_bech32(addr, try_bech32):
+def maybe_run_bech32(addr):
+    global try_bech32
     if try_bech32:
         try:
             p1 = subprocess.p1 = subprocess.Popen(["./runbech32.sh", addr], stdout=subprocess.PIPE)
             decoded_address = p1.stdout.readline().decode("utf-8").rstrip()
-            return decoded_address, try_bech32
+            p1.stdout.close()
+            return decoded_address
         except:
-            print("invalid path for bech32:" + common.bech32
-                  + "\nYou'll need to use bech32 to convert winning addresses to 'addr...' format.\n")
             try_bech32 = False
-    return addr, try_bech32
+    return addr
 
 
-def get_winner(unique, winner, n, participants, total_tickets):
+def process_winner(winning_num, n, _total_tickets):
     accum = 0
-    print("Prize #" + str(n) + " Winning number: " + str(winner))
-
-    for participant in participants:
-        participant_tickets = participants[participant]
+    print("Prize #" + str(n) + " Winning number: " + str(winning_num))
+    for p in participants:
+        participant_tickets = participants[p]
+        if participant_tickets == 0:
+            continue
         accum += participant_tickets
-        try_bech32 = True if giveaway_type == 2 else False
-        if accum > winner:
-            participant, try_bech32 = maybe_run_bech32(participant, try_bech32)
-            print_result(giveaway_type, participant, participant_tickets, total_tickets)
+        if accum > winning_num and participant_tickets > 0:
+            winner = maybe_run_bech32(p)
+            print_result(winner, participant_tickets, _total_tickets)
             if unique:
-                participants[participant] = 0
-                total_tickets -= participant_tickets
-            return total_tickets
+                participants[p] = 0
+                _total_tickets -= participant_tickets
+            break
+    if (accum < winning_num):
+        print("!!! Something probably went wrong. accum < winning_num. " + ": accum =" + str(accum) + ", winning_num = " + str(winning_num))
+    return _total_tickets
 
 
 def calculate_chance(tickets, total_tickets):
     return str(round(tickets / total_tickets * 100, 2))
 
 
-def print_result(giveaway_type, winner, tickets, total_tickets):
-    switcher = {
-        1: "Congrats to " + winner + " (" + str(round(tickets / million)) + " out of " +
-           str(round(total_tickets / million)) + " ADA, " + (calculate_chance(tickets, total_tickets)) + "% chance)!\n",
-        2: "Congrats to " + winner + " (" + str(tickets) + " out of " +
-           str(total_tickets) + " tokens, " + (calculate_chance(tickets, total_tickets)) + "% chance)!\n"
-    }
-    print(switcher.get(giveaway_type))
-
-
-def get_min_tokens(min_tokens_arg, giveaway_type):
-    if min_tokens_arg is None:
-        min_tokens = 0
+def print_result(winner, tickets, total_tickets):
+    if giveaway_type == 1:
+        congrats = "Congrats to " + winner + " (" + str(round(tickets / million)) + " out of " \
+                   + str(round(total_tickets / million)) + " ADA, " \
+                   + (calculate_chance(tickets, total_tickets)) + "% chance)!\n"
     else:
-        min_tokens = abs(int(min_tokens_arg))
+        congrats = "Congrats to " + winner + " (" + str(tickets) + " out of " + \
+                   str(total_tickets) + " tokens, " + (calculate_chance(tickets, total_tickets)) + "% chance)!\n"
+    print(congrats)
+
+
+def get_min_tokens():
+    if min_tokens_arg is None:
+        _min_tokens = 0
+    else:
+        _min_tokens = abs(int(min_tokens_arg))
 
     if giveaway_type == 1:
-        min_tokens *= million
-    return min_tokens
+        _min_tokens *= million
+    return _min_tokens
 
 
 # Parsing Args
@@ -129,7 +142,7 @@ elif poolId is not None:
 elif policyId is not None:
     giveaway_type = 2
 
-min_tokens = get_min_tokens(min_tokens_arg, giveaway_type)
+min_tokens = get_min_tokens()
 
 ledger = args.ledger
 
@@ -215,7 +228,6 @@ if giveaway_type == 1:
     print("Total calculated pool stake: " + str((tickets_total + excluded_stake) / million) + "\n")
     print("Total eligible stake: " + str(tickets_total / million))
     print("Number of eligible addresses: " + str(participants_total))
-    # print("Full list of eligible delegators:\n" + str(delegators))
 
 elif giveaway_type == 2:
     utxos = ledger["stateBefore"]['esLState']['utxoState']['utxo']
@@ -231,28 +243,46 @@ elif giveaway_type == 2:
                 for x in utxos[utxo]['amount']['policies'][policyId]:
                     tokens += (utxos[utxo]['amount']['policies'][policyId][x])
                 if tokens > min_tokens:
-                    policyHolders[address] = tokens
+                    policyHolderAddress = policyHolders.get(address)
+                    if policyHolderAddress is not None and policyHolderAddress > 0:
+                        policyHolders[address] += tokens
+                    else:
+                        policyHolders[address] = tokens
                     totalEligibleTokens += tokens
                 totalTokens += tokens
-
     tickets_total = totalEligibleTokens
     participants = policyHolders
     participants_total = len(policyHolders)
 
-    # print(policyHolders)
     print("Total # policy holders: " + str(participants_total))
     print("Total # tokens minted: " + str(totalTokens))
     print("Total # tokens eligible: " + str(totalEligibleTokens))
 
+f.close()
+
+# print("Full list of eligible participants:\n" + str(participants))
 print()
+
 if number_winners_arg is not None:
     number_winners = abs(int(number_winners_arg))
+    try_bech32 = True if giveaway_type == 2 else False
+    problems = 0
     if unique and participants_total < number_winners:
         exit("Too few delegators to pick from. Try a lower number of winners or omit --unique flag")
     for i in range(number_winners):
-        winning_num = random.randint(1, tickets_total)
-        tickets_total = get_winner(unique, winning_num, i + 1, participants, tickets_total)
+        try:
+            print("max:" + str(tickets_total))
+            tickets = ""
+            tt = 0
+            winning_num = random.randint(1, tickets_total)
+            tickets_total = process_winner(winning_num, i + 1, tickets_total)
+        except:
+            problems += 1
+    if problems > 0:
+        print("A number of problems occurred:" + str(problems))
 else:
     winning_num = random.randint(1, tickets_total)
-    tickets_total = get_winner(unique, winning_num, 1, participants, tickets_total)
-print("Done!")
+    tickets_total = process_winner(winning_num, 1, tickets_total)
+if not try_bech32:
+    print("You may need to use bech32 to convert winning addresses to 'addr...' format.\n")
+print("Done! Well done to the winners, best of luck next time to everyone else!")
