@@ -73,16 +73,17 @@ def maybe_run_bech32(addr):
 def process_winner(winning_num, n, _total_tickets):
     accum = 0
     print("Prize #" + str(n) + " Winning number: " + str(winning_num))
-    for p in participants:
-        participant_tickets = participants[p]
+    for p in eligible_participants:
+        participant_tickets = eligible_participants[p]
         if participant_tickets == 0:
             continue
         accum += participant_tickets
         if accum > winning_num and participant_tickets > 0:
-            winner = maybe_run_bech32(p)
+            if try_bech32:
+                winner = maybe_run_bech32(p)
             print_result(winner, participant_tickets, _total_tickets)
             if unique:
-                participants[p] = 0
+                eligible_participants[p] = 0
                 _total_tickets -= participant_tickets
             break
     if (accum < winning_num):
@@ -158,9 +159,9 @@ if not path.exists(ledger):
 with open(ledger) as f:
     ledger = json.load(f)
 
-participants_total = 0
+eligible_participants_total = 0
 tickets_total = 0
-participants = {}
+eligible_participants = {}
 
 if giveaway_type == 1:
     stakequery = "pstakeSet"
@@ -224,43 +225,47 @@ if giveaway_type == 1:
                 excluded_stake += activestake
             elif activestake > min_tokens:
                 tickets_total += activestake
-                participants_total += 1
-                participants[d] = activestake
+                eligible_participants_total += 1
+                eligible_participants[d] = activestake
             else:
                 excluded_stake += activestake
     print("Total pool stake on record: " + str(totalRecordedActiveStake))
     print("Total calculated pool stake: " + str((tickets_total + excluded_stake) / million) + "\n")
     print("Total eligible stake: " + str(tickets_total / million))
-    print("Number of eligible addresses: " + str(participants_total))
+    print("Number of eligible addresses: " + str(eligible_participants_total))
 
 elif giveaway_type == 2:
     utxos = ledger["stateBefore"]['esLState']['utxoState']['utxo']
-    policyHolders = {}
-    totalTokens = 0
-    totalEligibleTokens = 0
+    policy_holders = {}
+    total_tokens = 0
+    total_token_holders = 0
+    total_eligible_tokens = 0
     for utxo in utxos:
         numberOfTokens = 0
         for policy in utxos[utxo]['amount']['policies']:
             if policy == policyId:
                 address = utxos[utxo]['address']
-                tokens = 0
+                ph_tokens = 0
+                total_token_holders += 1
                 for x in utxos[utxo]['amount']['policies'][policyId]:
-                    tokens += (utxos[utxo]['amount']['policies'][policyId][x])
-                if tokens > min_tokens:
-                    policyHolderAddress = policyHolders.get(address)
-                    if policyHolderAddress is not None and policyHolderAddress > 0:
-                        policyHolders[address] += tokens
+                    ph_tokens += (utxos[utxo]['amount']['policies'][policyId][x])
+                if ph_tokens > min_tokens:
+                    policy_holder_address = policy_holders.get(address)
+                    if policy_holder_address is not None and policy_holder_address > 0:
+                        policy_holders[address] += ph_tokens
+                        total_token_holders -= 1
                     else:
-                        policyHolders[address] = tokens
-                    totalEligibleTokens += tokens
-                totalTokens += tokens
-    tickets_total = totalEligibleTokens
-    participants = policyHolders
-    participants_total = len(policyHolders)
+                        policy_holders[address] = ph_tokens
+                    total_eligible_tokens += ph_tokens
+                total_tokens += ph_tokens
+    tickets_total = total_eligible_tokens
+    eligible_participants = policy_holders
+    eligible_participants_total = len(policy_holders)
 
-    print("Total # policy holders: " + str(participants_total))
-    print("Total # tokens minted: " + str(totalTokens))
-    print("Total # tokens eligible: " + str(totalEligibleTokens))
+    print("Total # token holders: " + str(total_token_holders))
+    print("Total # tokens minted: " + str(total_tokens))
+    print("Total # eligible token holders: " + str(eligible_participants_total))
+    print("Total # eligible tokens: " + str(total_eligible_tokens))
 
 f.close()
 
@@ -271,7 +276,7 @@ if number_winners_arg is not None:
     number_winners = abs(int(number_winners_arg))
     try_bech32 = True if giveaway_type == 2 else False
     problems = 0
-    if unique and participants_total < number_winners:
+    if unique and eligible_participants_total < number_winners:
         exit("Too few delegators to pick from. Try a lower number of winners or omit --unique flag")
     for i in range(number_winners):
         try:
