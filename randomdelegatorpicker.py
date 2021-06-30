@@ -142,6 +142,10 @@ elif poolId is not None:
 elif policyId is not None:
     giveaway_type = 2
 
+# TODO:implement --exclude for token giveaways
+if giveaway_type == 2 and exclude_addresses is not None:
+    print("--exclude ADDRESSES param is not yet supported for token giveaways and will be ignored.")
+
 min_tokens = get_min_tokens()
 
 ledger = args.ledger
