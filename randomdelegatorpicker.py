@@ -2,7 +2,6 @@
 import json
 import argparse
 import random
-import common
 import subprocess
 
 from os import path
@@ -23,34 +22,34 @@ def parse_all_args():
     parser = argparse.ArgumentParser(
         description="Get random winner(s) for a raffle/giveaway.\nExample usage 1: "
                     + python_cmd + poolid_eg + exclude_eg + winners_eg + min_tokens_eg + unique_eg + "\n\n"
-                    + "Example usage 2: \n" + python_cmd + ledger_eg + policyid_eg + winners_eg + min_tokens_eg + unique_eg
+                    + "Example usage 2:\n" + python_cmd + ledger_eg + policyid_eg + winners_eg + min_tokens_eg + unique_eg
     )
-    parser.add_argument("--pool-id", '-i', dest="id", help="the pool ID")
-    parser.add_argument("--policy-id", '-p', dest="policyId", help="the token policy ID")
-    parser.add_argument("--ledger", '-l',
+    parser.add_argument('-i', "--pool-id", dest="id", help="the pool ID")
+    parser.add_argument('-p', "--policy-id", dest="policyId", help="the token policy ID")
+    parser.add_argument('-l', "--ledger",
                         dest="ledger",
                         default="ledger.json",
                         help="the path to a current ledger-state JSON file",
                         )
     parser.add_argument(
-        "--exclude", '-e',
+        '-e', "--exclude",
         dest="exclude_addresses",
         help="if specified will exclude provided address(es) from the raffle.\nE.g. --exclude "
              + "\"1b9bb7f381fd56c239903b380f44583ce5c43dd51a350497bc0824a4,"
                "002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff\""
     )
     parser.add_argument(
-        "--winners", '-w',
+        '-w', "--winners",
         dest="number_winners",
         help="if specified will generate specified number of winners"
     )
     parser.add_argument(
-        "--min-tokens", '-m',
+        '-m', "--min-tokens",
         dest="min_tokens",
         help="if specified will ignore addresses containing token balances below the provided threshold"
     )
     parser.add_argument(
-        "--unique", '-u',
+        '-u', "--unique",
         action="store_true",
         help="if used, the winners will be unique (max 1 prize per address). "
              + "Only makes sense to use if --winners is specified."
@@ -87,7 +86,8 @@ def process_winner(winning_num, n, _total_tickets):
                 _total_tickets -= participant_tickets
             break
     if (accum < winning_num):
-        print("!!! Something probably went wrong. accum < winning_num. " + ": accum =" + str(accum) + ", winning_num = " + str(winning_num))
+        print("!!! Something probably went wrong. accum < winning_num. " + ": accum =" + str(
+            accum) + ", winning_num = " + str(winning_num))
     return _total_tickets
 
 
@@ -135,7 +135,7 @@ if poolId is None and policyId is None:
     print("Neither --pool-id nor --policy-id was specified!")
     exit()
 elif poolId is not None and policyId is not None:
-    print("--pool-id and --policy-id arguments are not supported.")
+    print("--pool-id and --policy-id arguments are not supported, please use only one of them.")
     exit()
 elif poolId is not None:
     giveaway_type = 1
@@ -182,7 +182,7 @@ if giveaway_type == 1:
         exclude_addresses += "," + str(po)
     if not exclude_addresses.__contains__(pool_rewards):
         exclude_addresses += str(pool_rewards)
-    print("Excluding the following staking addresses: " + str(exclude_addresses))
+    print("Excluding the following addresses: " + str(exclude_addresses))
 
     # Retrieve list of delegators
     for item2 in ledger_set["delegations"]:
