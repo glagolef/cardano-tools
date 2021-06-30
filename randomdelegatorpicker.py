@@ -9,13 +9,12 @@ from os import path
 
 def parse_all_args():
     parser = argparse.ArgumentParser(
-        description="Get random winner(s) for a raffle/giveaway.\nExample usage 1: python3 random.py --ledger ledger.json"
+        description="Get random winner(s) for a raffle/giveaway.\nExample usage 1: "
+                    + "python3 randomdelegatorpicker.py --ledger ledger.json"
                     + "--pool-id b40683f4baad755ff60f26dc73c3e371ac4c5e422feef2fc1f5f29bf "
-                    + "--exclude 002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff "
-                    + "--winners 3 --min-tokens 1 --unique" + "\n\n"
-                    + "Example usage 2: python3 random.py --ledger ledger.json "
-                    + "--policy-id 0e14267a8020229adc0184dd25fa3174c3f7d6caadcb4425c70e7c04 "
-                      "--winners 3 --min-tokens 3 --unique"
+                    + "--exclude 002545ccd16d81e202288049d22f0a50c3fbf520cf2a206ccd7765ff --winners 3 --min-tokens 1 --unique" + "\n\n"
+                    + "Example usage 2: python3 randomdelegatorpicker.py --ledger ledger.json "
+                    + "--policy-id 0e14267a8020229adc0184dd25fa3174c3f7d6caadcb4425c70e7c0--winners 3 --min-tokens 3 --unique"
     )
     parser.add_argument("--pool-id", '-i', dest="id", help="the pool ID")
     parser.add_argument("--policy-id", '-p', dest="policyId", help="the token policy ID")
@@ -51,14 +50,11 @@ def parse_all_args():
 
 
 def maybe_run_bech32(addr, try_bech32):
-    if common.bech32 == "":
-        print("Empty path for bech32. You'll need to use bech32 to convert winning addresses to 'addr...' format.\n")
-        try_bech32 = False
-    elif try_bech32:
+    if try_bech32:
         try:
             p1 = subprocess.p1 = subprocess.Popen(["./runbech32.sh", addr], stdout=subprocess.PIPE)
             decoded_address = p1.stdout.readline().decode("utf-8").rstrip()
-            return decoded_address
+            return decoded_address, try_bech32
         except:
             print("invalid path for bech32:" + common.bech32
                   + "\nYou'll need to use bech32 to convert winning addresses to 'addr...' format.\n")
@@ -243,7 +239,7 @@ elif giveaway_type == 2:
     participants = policyHolders
     participants_total = len(policyHolders)
 
-    print(policyHolders)
+    # print(policyHolders)
     print("Total # policy holders: " + str(participants_total))
     print("Total # tokens minted: " + str(totalTokens))
     print("Total # tokens eligible: " + str(totalEligibleTokens))
