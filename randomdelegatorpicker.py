@@ -79,8 +79,7 @@ def process_winner(winning_num, n, _total_tickets):
             continue
         accum += participant_tickets
         if accum > winning_num and participant_tickets > 0:
-            if try_bech32:
-                winner = maybe_run_bech32(p)
+            winner = maybe_run_bech32(p)
             print_result(winner, participant_tickets, _total_tickets)
             if unique:
                 eligible_participants[p] = 0
@@ -140,6 +139,7 @@ elif poolId is not None and policyId is not None:
     exit()
 elif poolId is not None:
     giveaway_type = 1
+    try_bech32 = False
 elif policyId is not None:
     giveaway_type = 2
 
@@ -274,7 +274,6 @@ print()
 
 if number_winners_arg is not None:
     number_winners = abs(int(number_winners_arg))
-    try_bech32 = True if giveaway_type == 2 else False
     problems = 0
     if unique and eligible_participants_total < number_winners:
         exit("Too few delegators to pick from. Try a lower number of winners or omit --unique flag")
@@ -289,6 +288,6 @@ if number_winners_arg is not None:
 else:
     winning_num = random.randint(1, tickets_total)
     tickets_total = process_winner(winning_num, 1, tickets_total)
-if not try_bech32:
+if not try_bech32 and giveaway_type == 2:
     print("You may need to use bech32 to convert winning addresses to 'addr...' format.\n")
 print("Done! Well done to the winners, best of luck next time to everyone else!")
