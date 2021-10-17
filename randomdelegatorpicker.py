@@ -102,17 +102,13 @@ def calculate_chance(tickets, total_tickets):
 
 def print_result(winner, tickets, total_tickets):
     tickets = round(tickets)
-    if giveaway_type == delegator_str and not use_sqrt:
-        divisor = million
-    else:
-        divisor = 1
-    congrats = get_congrats_message(winner, tickets, total_tickets, divisor)
+    congrats = get_congrats_message(winner, tickets, total_tickets)
     print(congrats)
 
 
-def get_congrats_message(winner, tickets, total_tickets, divisor):
-    return "Congrats to " + winner + " (" + str(round(tickets / divisor)) + " out of " \
-           + str(round(total_tickets / divisor)) + " tickets, " \
+def get_congrats_message(winner, tickets, total_tickets):
+    return "Congrats to " + winner + " (" + str(round(tickets * tickets)) +" ADA) "+ " (" + str(round(tickets)) + " out of " \
+           + str(total_tickets) + " tickets, " \
            + (calculate_chance(tickets, total_tickets)) + "% chance)!\n"
 
 
@@ -121,9 +117,6 @@ def get_min_tokens():
         _min_tokens = 0
     else:
         _min_tokens = abs(int(min_tokens_arg))
-
-    if giveaway_type == delegator_str:
-        _min_tokens *= million
     return _min_tokens
 
 
@@ -254,20 +247,26 @@ if giveaway_type == delegator_str:
     total_bs = 0
     for delegator in blockstakedelegators[poolId]:
         if delegator in blockstake:
-            activestake = blockstake[delegator]
+            activestake = blockstake[delegator] / million
             if exclude_addresses.__contains__(delegator) or min_tokens > activestake:
                 ineligible_tokens_total += activestake
                 ineligible_participants_total += 1
             else:
                 eligible_tokens_total += activestake
-                activestake = maybe_apply_sqrt(activestake)
-                sqrt_eligible_tokens_total += activestake
+                # s_activestake = maybe_apply_sqrt(activestake)
                 eligible_participants[delegator] = activestake
+    if use_sqrt:
+        sqrt_eligible_tokens_total = 0
+        for participant in eligible_participants:
+            participant_tickets = eligible_participants[participant]
+            sqrt_tickets = math.sqrt(participant_tickets)
+            eligible_participants[participant] = sqrt_tickets
+            sqrt_eligible_tokens_total += sqrt_tickets
     eligible_participants_total = len(eligible_participants)
     print("Total pool stake on record: " + str(totalRecordedActiveStake))
-    print("Total calculated pool stake (ADA): " + str((eligible_tokens_total + ineligible_tokens_total) / million) + "\n")
+    print("Total calculated pool stake (ADA): " + str((eligible_tokens_total + ineligible_tokens_total)) + "\n")
     print("Total # of eligible addresses: " + str(eligible_participants_total))
-    print("Total eligible stake (ADA): " + str(eligible_tokens_total / million))
+    print("Total eligible stake (ADA): " + str(eligible_tokens_total))
 
 elif giveaway_type == token_hodler_str:
     utxos = ledger["stateBefore"]['esLState']['utxoState']['utxo']
@@ -308,8 +307,9 @@ if use_sqrt:
 
 ledger_stream.close()
 
-# print("Full list of eligible participants:\n" + str(participants))
-print()
+print("Full list of eligible participants:\n" + str(eligible_participants))
+# exit()
+# print()
 
 # if number_winners > 1:
 if unique and eligible_participants_total < number_winners:
